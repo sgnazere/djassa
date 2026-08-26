@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TypeCompte {
+  client
+  prestataire
+}
+
+enum StatutUtilisateur {
+  actif
+  suspendu
+}
+
+enum TypeService {
+  fixe
+  mobile
+}
+
+enum TypeDeplacement {
+  fixe
+  mobile
+  mixte
+}
+
+enum ModeActuel {
+  au_local
+  en_deplacement
+}
+
+enum StatutDisponibilite {
+  disponible
+  en_intervention
+  hors_ligne
+}
+
+enum PieceJustificativeType {
+  CNI
+  carte_pro
+}
+
+enum VerificationIaStatut {
+  en_attente
+  valide
+  suspect
+  rejete
+}
+
+enum StatutFiche {
+  en_attente_validation
+  active
+  suspendue
+}
+
+enum StatutDemande {
+  en_recherche
+  acceptee
+  annulee
+  terminee
+}
+
+enum StatutTentative {
+  notifie
+  accepte
+  decline
+  expire
+}
+
+enum CibleType {
+  prestataire
+  avis
+}
+
+enum StatutSignalement {
+  en_attente
+  traite
+  rejete
+}
+
+model Utilisateur {
+  id           String            @id @default(uuid())
+  nom          String
+  telephone    String            @unique
+  email        String?
+  typeCompte   TypeCompte        @map("type_compte")
+  dateCreation DateTime          @default(now()) @map("date_creation")
+  statut       StatutUtilisateur @default(actif)
+
+  prestataire  Prestataire?
+  avis         Avis[]
+  demandes     Demande[]
+  signalements Signalement[]
+
+  @@map("utilisateurs")
+}
+
+model Categorie {
+  id          String      @id @default(uuid())
+  nom         String
+  typeService TypeService @map("type_service")
+  icone       String?
+
+  prestataireCategories PrestataireCategorie[]
+  demandes              Demande[]
+
+  @@map("categories")
+}
+
+model Prestataire {
+  id                      String                  @id @default(uuid())
+  utilisateurId           String                  @unique @map("utilisateur_id")
+  utilisateur             Utilisateur             @relation(fields: [utilisateurId], references: [id])
+  nomCommercial           String                  @map("nom_commercial")
+  description             String?
+  latitude                Float
+  longitude               Float
+  adresseTexte            String?                 @map("adresse_texte")
+  typeDeplacement         TypeDeplacement         @map("type_deplacement")
+  modeActuel              ModeActuel?             @map("mode_actuel")
+  statutDisponibilite     StatutDisponibilite?    @map("statut_disponibilite")
+  pieceJustificativeType  PieceJustificativeType  @map("piece_justificative_type")
+  pieceJustificativeUrl   String                  @map("piece_justificative_url")
+  verificationIaStatut    VerificationIaStatut    @default(en_attente) @map("verification_ia_statut")
+  visiteTerrainFaite      Boolean                 @default(false) @map("visite_terrain_faite")
+  visiteTerrainDate       DateTime?               @map("visite_terrain_date")
+  statutFiche             StatutFiche             @default(en_attente_validation) @map("statut_fiche")
+  noteMoyenne             Float                   @default(0) @map("note_moyenne")
+  dateCreation            DateTime                @default(now()) @map("date_creation")
+
+  categories          PrestataireCategorie[]
+  avis                Avis[]
+  demandesRetenues    Demande[]          @relation("PrestataireRetenu")
+  tentatives          DemandeTentative[]
+  positionTempsReel   PositionTempsReel?
+
+  @@map("prestataires")
+}
+
+model PrestataireCategorie {
+  prestataireId String @map("prestataire_id")
+  categorieId   String @map("categorie_id")
+
+  prestataire Prestataire @relation(fields: [prestataireId], references: [id])
+  categorie   Categorie   @relation(fields: [categorieId], references: [id])
+
+  @@id([prestataireId, categorieId])
+  @@map("prestataire_categories")
+}
+
+model Avis {
+  id            String   @id @default(uuid())
+  prestataireId String   @map("prestataire_id")
+  utilisateurId String   @map("utilisateur_id")
+  note          Int
+  commentaire   String?
+  dateCreation  DateTime @default(now()) @map("date_creation")
+
+  prestataire Prestataire @relation(fields: [prestataireId], references: [id])
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id])
+
+  @@map("avis")
+}
+
+model Demande {
+  id                    String        @id @default(uuid())
+  clientId              String        @map("client_id")
+  categorieId           String        @map("categorie_id")
+  latitudeClient        Float         @map("latitude_client")
+  longitudeClient       Float         @map("longitude_client")
+  prestataireRetenuId   String?       @map("prestataire_retenu_id")
+  statut                StatutDemande @default(en_recherche)
+  rayonDiffusionActuelM Int           @map("rayon_diffusion_actuel_m")
+  dateCreation          DateTime      @default(now()) @map("date_creation")
+  dateAcceptation       DateTime?     @map("date_acceptation")
+
+  client            Utilisateur         @relation(fields: [clientId], references: [id])
+  categorie         Categorie           @relation(fields: [categorieId], references: [id])
+  prestataireRetenu Prestataire?        @relation("PrestataireRetenu", fields: [prestataireRetenuId], references: [id])
+  tentatives        DemandeTentative[]
+  positionTempsReel PositionTempsReel?
+
+  @@map("demandes")
+}
+
+model DemandeTentative {
+  id               String          @id @default(uuid())
+  demandeId        String          @map("demande_id")
+  prestataireId    String          @map("prestataire_id")
+  ordreTentative   Int             @map("ordre_tentative")
+  distanceM        Int             @map("distance_m")
+  statut           StatutTentative @default(notifie)
+  dateNotification DateTime        @default(now()) @map("date_notification")
+  dateReponse      DateTime?       @map("date_reponse")
+
+  demande     Demande     @relation(fields: [demandeId], references: [id])
+  prestataire Prestataire @relation(fields: [prestataireId], references: [id])
+
+  @@map("demande_tentatives")
+}
+
+model Signalement {
+  id            String            @id @default(uuid())
+  utilisateurId String            @map("utilisateur_id")
+  cibleType     CibleType         @map("cible_type")
+  cibleId       String            @map("cible_id")
+  motif         String
+  statut        StatutSignalement @default(en_attente)
+  dateCreation  DateTime          @default(now()) @map("date_creation")
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id])
+
+  @@map("signalements")
+}
+
+model PositionTempsReel {
+  demandeId     String   @id @map("demande_id")
+  prestataireId String   @unique @map("prestataire_id")
+  latitude      Float
+  longitude     Float
+  derniereMaj   DateTime @default(now()) @map("derniere_maj")
+
+  demande     Demande     @relation(fields: [demandeId], references: [id])
+  prestataire Prestataire @relation(fields: [prestataireId], references: [id])
+
+  @@map("positions_temps_reel")
+}

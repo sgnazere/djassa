@@ -1,10 +1,14 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import categorieRoutes from './routes/categorie.routes';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+app.use(express.json());
+app.use('/api', categorieRoutes);
 
 app.get('/', (req, res) => {
   res.send('API backend en ligne');
