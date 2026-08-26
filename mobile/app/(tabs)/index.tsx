@@ -13,7 +13,7 @@ export default function HomeScreen() {
   const [erreur, setErreur] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('http://192.168.1.7:3000/api/categories')
+    fetch('http://192.168.1.8:3000/api/categories')
       .then((res) => res.json())
       .then((data) => {
         setCategories(data);
