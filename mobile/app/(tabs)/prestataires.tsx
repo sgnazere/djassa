@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, ActivityIndicator, Text } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import * as Location from 'expo-location';
 
 type Prestataire = {
   id: string;
@@ -11,44 +12,55 @@ type Prestataire = {
   statutDisponibilite: string | null;
 };
 
-// Position de test (Cocody, Abidjan) - deviendra la géoloc réelle du client plus tard
-const LAT_CLIENT = 5.36;
-const LNG_CLIENT = -3.99;
-
 export default function PrestatairesScreen() {
+  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [prestataires, setPrestataires] = useState<Prestataire[]>([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`http://192.168.1.8:3000/api/prestataires?lat=${LAT_CLIENT}&lng=${LNG_CLIENT}`)
-      .then((res) => res.json())
-      .then((data) => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErreur('Permission de localisation refusée');
+        setChargement(false);
+        return;
+      }
+
+      const loc = await Location.getCurrentPositionAsync({});
+      const lat = loc.coords.latitude;
+      const lng = loc.coords.longitude;
+      setPosition({ lat, lng });
+
+      try {
+        const res = await fetch(`http://192.168.1.8:3000/api/prestataires?lat=${lat}&lng=${lng}`);
+        const data = await res.json();
         setPrestataires(data);
-        setChargement(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         setErreur('Impossible de charger les prestataires');
-        setChargement(false);
         console.error(err);
-      });
+      } finally {
+        setChargement(false);
+      }
+    })();
   }, []);
 
   if (chargement) return <ActivityIndicator style={styles.centre} size="large" />;
   if (erreur) return <Text style={styles.centre}>{erreur}</Text>;
+  if (!position) return <Text style={styles.centre}>Position indisponible</Text>;
 
   return (
     <MapView
       style={styles.carte}
       initialRegion={{
-        latitude: LAT_CLIENT,
-        longitude: LNG_CLIENT,
+        latitude: position.lat,
+        longitude: position.lng,
         latitudeDelta: 0.05,
         longitudeDelta: 0.05,
       }}
     >
       <Marker
-        coordinate={{ latitude: LAT_CLIENT, longitude: LNG_CLIENT }}
+        coordinate={{ latitude: position.lat, longitude: position.lng }}
         title="Votre position"
         pinColor="blue"
       />
