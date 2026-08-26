@@ -47,10 +47,10 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, paddingTop: 60 },
-  titre: { fontSize: 22, fontWeight: '600', marginBottom: 16 },
+  container: { flex: 1, padding: 20, paddingTop: 60, backgroundColor: '#ffffff' },
+  titre: { fontSize: 22, fontWeight: '600', marginBottom: 16, color: '#000000' },
   ligne: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  nom: { fontSize: 16 },
+  nom: { fontSize: 16, color: '#000000' },
   type: { fontSize: 13, color: '#888' },
-  centre: { flex: 1, textAlign: 'center', marginTop: 100 },
+  centre: { flex: 1, textAlign: 'center', marginTop: 100, color: '#000000' },
 });
