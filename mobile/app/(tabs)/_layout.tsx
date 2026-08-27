@@ -31,12 +31,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-  name="prestataires"
-  options={{
-    title: 'Prestataires',
-    tabBarIcon: ({ color }) => <IconSymbol size={28} name="wrench.fill" color={color} />,
-  }}
-/>
+        name="prestataires"
+        options={{
+          title: 'Carte',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="wrench.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="prestataire-notif"
+        options={{
+          title: 'Notif',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="bell.fill" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

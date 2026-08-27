@@ -33,7 +33,7 @@ export default function PrestatairesScreen() {
       setPosition({ lat, lng });
 
       try {
-        const res = await fetch(`http://192.168.1.8:3000/api/prestataires?lat=${lat}&lng=${lng}`);
+        const res = await fetch(`http://192.168.1.9:3000/api/prestataires?lat=${lat}&lng=${lng}`);
         const data = await res.json();
         setPrestataires(data);
       } catch (err) {
