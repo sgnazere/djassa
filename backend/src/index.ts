@@ -5,6 +5,8 @@ import prestataireRoutes from './routes/prestataire.routes';
 import demandeRoutes from './routes/demande.routes';
 import reponseTentativeRoutes from './routes/reponse-tentative.routes';
 import notificationPrestataireRoutes from './routes/notification-prestataire.routes';
+import authRoutes from './routes/auth.routes';
+
 
 
 
@@ -21,6 +23,7 @@ app.use('/api', prestataireRoutes);
 app.use('/api', demandeRoutes);
 app.use('/api', reponseTentativeRoutes);
 app.use('/api', notificationPrestataireRoutes);
+app.use('/api', authRoutes);
 
 app.get('/', (req, res) => {
   res.send('API backend en ligne');
