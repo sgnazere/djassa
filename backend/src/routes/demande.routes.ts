@@ -1,22 +1,14 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { creerDemande } from '../services/demande.service';
+import { authentifier, autoriser } from '../middlewares/authentification';
+import { valider } from '../middlewares/validation-schema';
+import { journaliserErreur } from '../utils/journal';
 
 const router = Router();
-
-router.post('/demandes', async (req, res) => {
-  const { clientId, categorieId, latitude, longitude } = req.body;
-
-  if (!clientId || !categorieId || latitude === undefined || longitude === undefined) {
-    return res.status(400).json({ message: 'Champs manquants' });
-  }
-
-  try {
-    const resultat = await creerDemande(clientId, categorieId, latitude, longitude);
-    res.status(201).json(resultat);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Erreur lors de la création de la demande' });
-  }
+const uuid = z.string().uuid();
+router.post('/demandes', authentifier, autoriser('client'), valider(z.object({ categorieId: uuid, latitude: z.number().finite().min(-90).max(90), longitude: z.number().finite().min(-180).max(180) }).strict()), async (req, res) => {
+  try { res.status(201).json(await creerDemande(req.authentification!.utilisateurId, req.body.categorieId, req.body.latitude, req.body.longitude)); }
+  catch (error) { journaliserErreur('POST /demandes', error); res.status(500).json({ message: 'Erreur lors de la création de la demande' }); }
 });
-
 export default router;

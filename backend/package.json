@@ -13,10 +13,16 @@
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "bullmq": "^6.3.4",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "ioredis": "^6.0.0",
+    "jose": "^6.2.12",
     "pg": "^8.23.0",
-    "twilio": "^6.1.0"
+    "twilio": "^6.1.0",
+    "zod": "^4.6.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

@@ -10,6 +10,7 @@ datasource db {
 enum TypeCompte {
   client
   prestataire
+  admin
 }
 
 enum StatutUtilisateur {
@@ -95,8 +96,26 @@ model Utilisateur {
   avis         Avis[]
   demandes     Demande[]
   signalements Signalement[]
+  jetonsActualisation JetonActualisation[]
 
   @@map("utilisateurs")
+}
+
+model JetonActualisation {
+  id          String   @id
+  utilisateurId String @map("utilisateur_id")
+  empreinte   String   @unique
+  expireLe    DateTime @map("expire_le")
+  revoqueLe   DateTime? @map("revoque_le")
+  remplaceParId String? @unique @map("remplace_par_id")
+  dateCreation DateTime @default(now()) @map("date_creation")
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  remplacePar JetonActualisation? @relation("RotationJeton", fields: [remplaceParId], references: [id])
+  remplaceDepuis JetonActualisation? @relation("RotationJeton")
+
+  @@index([utilisateurId])
+  @@map("jetons_actualisation")
 }
 
 model Categorie {
